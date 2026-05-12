@@ -645,7 +645,7 @@ Available at <https://ramaproxy.org/book/faq.html>.
 
 ```kotlin
 dependencies {
-    implementation("io.github.kotlinmania:rama-unix-kotlin:0.1.0-SNAPSHOT")
+    implementation("io.github.kotlinmania:rama-unix-kotlin:0.1.0")
 }
 ```
 
