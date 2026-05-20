@@ -268,6 +268,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation("io.github.kotlinmania:pin-project-lite-kotlin:0.1.0")
+                implementation("io.github.kotlinmania:rama-core-kotlin:0.1.0")
+                implementation("io.github.kotlinmania:rama-net-kotlin:0.1.0")
+                implementation("io.github.kotlinmania:tokio-kotlin:0.1.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
