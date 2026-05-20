@@ -26,6 +26,7 @@ data class ClientUnixSocketInfo(
 /**
  * Connected Unix socket information.
  */
+@ConsistentCopyVisibility
 data class UnixSocketInfo private constructor(
     private val localAddress: UnixSocketAddress?,
     private val peerAddress: UnixSocketAddress,

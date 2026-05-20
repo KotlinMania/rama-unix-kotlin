@@ -17,7 +17,13 @@ interface UnixDatagramSocket {
     suspend fun sendTo(bytes: ByteArray, address: UnixSocketAddress): Int
 }
 
-expect class UnixDatagram : UnixDatagramSocket
+expect class UnixDatagram : UnixDatagramSocket {
+    override suspend fun receiveFrom(capacity: Int): Pair<ByteArray, UnixSocketAddress>
+
+    override suspend fun send(bytes: ByteArray): Int
+
+    override suspend fun sendTo(bytes: ByteArray, address: UnixSocketAddress): Int
+}
 
 /**
  * A unified stream and sink interface to an underlying Unix datagram, using

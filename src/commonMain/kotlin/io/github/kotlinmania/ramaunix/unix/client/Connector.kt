@@ -9,10 +9,10 @@ import io.github.kotlinmania.ramaunix.unix.UnixStream
 /**
  * A connector which can be used to establish a Unix connection to a server.
  */
-class UnixConnector<ConnectorFactory, T> private constructor(
+class UnixConnector<ConnectorFactory> private constructor(
     private val connectorFactory: ConnectorFactory,
-    private val target: T,
-) {
+    private val target: UnixTarget,
+) where ConnectorFactory : UnixStreamConnectorFactory<UnixStreamConnector> {
     companion object {
         /**
          * Create a new [UnixConnector], which is used to establish a connection to a server
@@ -21,7 +21,7 @@ class UnixConnector<ConnectorFactory, T> private constructor(
          * You can use middleware around the [UnixConnector]
          * or add connection pools, retry logic and more.
          */
-        fun fixed(path: String): UnixConnector<UnixStreamConnectorCloneFactory<UnixStreamConnector>, UnixTarget> =
+        fun fixed(path: String): UnixConnector<UnixStreamConnectorCloneFactory<UnixStreamConnector>> =
             UnixConnector(
                 connectorFactory = UnixStreamConnectorCloneFactory(DefaultUnixStreamConnector),
                 target = UnixTarget(path),
@@ -33,7 +33,7 @@ class UnixConnector<ConnectorFactory, T> private constructor(
      */
     fun <Connector> withConnector(
         connector: Connector,
-    ): UnixConnector<UnixStreamConnectorCloneFactory<Connector>, T> where Connector : UnixStreamConnector =
+    ): UnixConnector<UnixStreamConnectorCloneFactory<Connector>> where Connector : UnixStreamConnector =
         UnixConnector(
             connectorFactory = UnixStreamConnectorCloneFactory(connector),
             target = target,
@@ -42,15 +42,14 @@ class UnixConnector<ConnectorFactory, T> private constructor(
     /**
      * Consume this connector to attach the given factory as a new [UnixConnector].
      */
-    fun <Factory> withConnectorFactory(factory: Factory): UnixConnector<Factory, T>
-        where Factory : UnixStreamConnectorFactory<out UnixStreamConnector> =
+    fun <Factory> withConnectorFactory(factory: Factory): UnixConnector<Factory>
+        where Factory : UnixStreamConnectorFactory<UnixStreamConnector> =
         UnixConnector(
             connectorFactory = factory,
             target = target,
         )
 
-    suspend fun <Input> serve(input: Input): EstablishedClientConnection<UnixStream, Input>
-        where ConnectorFactory : UnixStreamConnectorFactory<out UnixStreamConnector>, T : UnixTarget {
+    suspend fun <Input> serve(input: Input): EstablishedClientConnection<UnixStream, Input> {
         val connector = connectorFactory.makeConnector()
         val conn = connector.connect(target.path)
         val info =
