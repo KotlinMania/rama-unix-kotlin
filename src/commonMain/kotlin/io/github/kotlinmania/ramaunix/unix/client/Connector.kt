@@ -9,10 +9,10 @@ import io.github.kotlinmania.ramaunix.unix.UnixStream
 /**
  * A connector which can be used to establish a Unix connection to a server.
  */
-class UnixConnector<ConnectorFactory> private constructor(
+class UnixConnector<ConnectorFactory, Connector> private constructor(
     private val connectorFactory: ConnectorFactory,
     private val target: UnixTarget,
-) where ConnectorFactory : UnixStreamConnectorFactory<UnixStreamConnector> {
+) where ConnectorFactory : UnixStreamConnectorFactory<Connector>, Connector : UnixStreamConnector {
     companion object {
         /**
          * Create a new [UnixConnector], which is used to establish a connection to a server
@@ -21,7 +21,7 @@ class UnixConnector<ConnectorFactory> private constructor(
          * You can use middleware around the [UnixConnector]
          * or add connection pools, retry logic and more.
          */
-        fun fixed(path: String): UnixConnector<UnixStreamConnectorCloneFactory<UnixStreamConnector>> =
+        fun fixed(path: String): UnixConnector<UnixStreamConnectorCloneFactory<UnixStreamConnector>, UnixStreamConnector> =
             UnixConnector(
                 connectorFactory = UnixStreamConnectorCloneFactory(DefaultUnixStreamConnector),
                 target = UnixTarget(path),
@@ -33,7 +33,7 @@ class UnixConnector<ConnectorFactory> private constructor(
      */
     fun <Connector> withConnector(
         connector: Connector,
-    ): UnixConnector<UnixStreamConnectorCloneFactory<Connector>> where Connector : UnixStreamConnector =
+    ): UnixConnector<UnixStreamConnectorCloneFactory<Connector>, Connector> where Connector : UnixStreamConnector =
         UnixConnector(
             connectorFactory = UnixStreamConnectorCloneFactory(connector),
             target = target,
@@ -42,8 +42,8 @@ class UnixConnector<ConnectorFactory> private constructor(
     /**
      * Consume this connector to attach the given factory as a new [UnixConnector].
      */
-    fun <Factory> withConnectorFactory(factory: Factory): UnixConnector<Factory>
-        where Factory : UnixStreamConnectorFactory<UnixStreamConnector> =
+    fun <Factory, FactoryConnector> withConnectorFactory(factory: Factory): UnixConnector<Factory, FactoryConnector>
+        where Factory : UnixStreamConnectorFactory<FactoryConnector>, FactoryConnector : UnixStreamConnector =
         UnixConnector(
             connectorFactory = factory,
             target = target,
