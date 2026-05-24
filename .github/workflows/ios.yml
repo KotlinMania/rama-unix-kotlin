@@ -30,16 +30,6 @@ jobs:
         # `XCFramework("<Name>")` declaration in build.gradle.kts so this
         # workflow stays portable across the kotlinmania workspace.
         run: |
-          MISSING_ACTUALS=()
-          for SYMBOL in TokioUnixStream UnixDatagram UnixSocket TokioUnixListener UnixSocketCleanup UnixSocketOptions; do
-            if ! grep -R -l --include='*.kt' "actual class $SYMBOL" src 2>/dev/null | grep -v '^src/commonMain/' >/dev/null; then
-              MISSING_ACTUALS+=("$SYMBOL")
-            fi
-          done
-          if [ "${#MISSING_ACTUALS[@]}" -gt 0 ]; then
-            echo "::notice::Skipping iOS native build until native actual declarations are added: ${MISSING_ACTUALS[*]}"
-            exit 0
-          fi
           XCF_NAME=$(grep -oE 'XCFramework\("[^"]+"\)' build.gradle.kts | head -1 | sed 's/.*"\(.*\)".*/\1/')
           if [ -z "$XCF_NAME" ]; then
             echo "::error::No XCFramework(\"<Name>\") declaration found in build.gradle.kts"
