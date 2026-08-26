@@ -9,10 +9,10 @@ import io.github.kotlinmania.ramaunix.unix.UnixStream
 /**
  * A connector which can be used to establish a Unix connection to a server.
  */
-class UnixConnector<ConnectorFactory, Connector> private constructor(
+class UnixConnector<ConnectorFactory : UnixStreamConnectorFactory<UnixStreamConnector>> private constructor(
     private val connectorFactory: ConnectorFactory,
     private val target: UnixTarget,
-) where ConnectorFactory : UnixStreamConnectorFactory<Connector>, Connector : UnixStreamConnector {
+) {
     companion object {
         /**
          * Create a new [UnixConnector], which is used to establish a connection to a server
@@ -21,7 +21,7 @@ class UnixConnector<ConnectorFactory, Connector> private constructor(
          * You can use middleware around the [UnixConnector]
          * or add connection pools, retry logic and more.
          */
-        fun fixed(path: String): UnixConnector<UnixStreamConnectorCloneFactory<UnixStreamConnector>, UnixStreamConnector> =
+        fun fixed(path: String): UnixConnector<UnixStreamConnectorCloneFactory<UnixStreamConnector>> =
             UnixConnector(
                 connectorFactory = UnixStreamConnectorCloneFactory(DefaultUnixStreamConnector),
                 target = UnixTarget(path),
@@ -31,9 +31,9 @@ class UnixConnector<ConnectorFactory, Connector> private constructor(
     /**
      * Consume this connector to attach the given connector as a new [UnixConnector].
      */
-    fun <Connector> withConnector(
+    fun <Connector : UnixStreamConnector> withConnector(
         connector: Connector,
-    ): UnixConnector<UnixStreamConnectorCloneFactory<Connector>, Connector> where Connector : UnixStreamConnector =
+    ): UnixConnector<UnixStreamConnectorCloneFactory<Connector>> =
         UnixConnector(
             connectorFactory = UnixStreamConnectorCloneFactory(connector),
             target = target,
@@ -42,8 +42,9 @@ class UnixConnector<ConnectorFactory, Connector> private constructor(
     /**
      * Consume this connector to attach the given factory as a new [UnixConnector].
      */
-    fun <Factory, FactoryConnector> withConnectorFactory(factory: Factory): UnixConnector<Factory, FactoryConnector>
-        where Factory : UnixStreamConnectorFactory<FactoryConnector>, FactoryConnector : UnixStreamConnector =
+    fun <Factory : UnixStreamConnectorFactory<UnixStreamConnector>> withConnectorFactory(
+        factory: Factory,
+    ): UnixConnector<Factory> =
         UnixConnector(
             connectorFactory = factory,
             target = target,
@@ -59,7 +60,7 @@ class UnixConnector<ConnectorFactory, Connector> private constructor(
                     peerAddress = conn.stream.peerAddr(),
                 ),
             )
-        conn.extensionsMut()["ClientUnixSocketInfo"] = info
+        conn.extensions["ClientUnixSocketInfo"] = info
         return EstablishedClientConnection(input = input, conn = conn)
     }
 }
@@ -116,7 +117,7 @@ data class UnixStreamConnectorCloneFactory<C>(
     override suspend fun makeConnector(): C = connector
 }
 
-data class EstablishedClientConnection<Conn, Input>(
+data class EstablishedClientConnection<out Conn, out Input>(
     val input: Input,
     val conn: Conn,
 )

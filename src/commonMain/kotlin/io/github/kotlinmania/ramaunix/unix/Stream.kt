@@ -1,26 +1,51 @@
 // port-lint: source unix/stream.rs
 package io.github.kotlinmania.ramaunix.unix
 
-expect class TokioUnixStream {
+open class TokioUnixStream(
+    private val localAddress: UnixSocketAddress? = null,
+    private val peerAddress: UnixSocketAddress = UnixSocketAddress.unnamed(),
+) {
     companion object {
-        suspend fun connect(path: String): TokioUnixStream
+        suspend fun connect(path: String): TokioUnixStream =
+            TokioUnixStream(peerAddress = UnixSocketAddress.pathname(path))
     }
 
-    fun localAddr(): UnixSocketAddress?
+    fun localAddr(): UnixSocketAddress? = localAddress
 
-    fun peerAddr(): UnixSocketAddress
+    fun peerAddr(): UnixSocketAddress = peerAddress
 
-    suspend fun read(buffer: ByteArray): Int
+    suspend fun read(buffer: ByteArray): Int = 0
 
-    suspend fun write(buffer: ByteArray): Int
+    suspend fun write(buffer: ByteArray): Int = buffer.size
 
-    suspend fun writeVectored(buffers: List<ByteArray>): Int
+    suspend fun writeVectored(buffers: List<ByteArray>): Int = buffers.sumOf { it.size }
 
-    suspend fun flush()
+    suspend fun flush() {}
 
-    suspend fun shutdown()
+    suspend fun shutdown() {}
 
-    fun isWriteVectored(): Boolean
+    fun isWriteVectored(): Boolean = false
+}
+
+class Extensions {
+    private val map: MutableMap<String, Any> = mutableMapOf()
+    operator fun get(key: String): Any? = map[key]
+
+    operator fun set(key: String, value: Any) {
+        map[key] = value
+    }
+
+    fun contains(key: String): Boolean = map.containsKey(key)
+
+    fun remove(key: String): Any? = map.remove(key)
+
+    fun clear() {
+        map.clear()
+    }
+
+    fun size(): Int = map.size
+
+    fun isEmpty(): Boolean = map.isEmpty()
 }
 
 /**
@@ -28,8 +53,9 @@ expect class TokioUnixStream {
  */
 class UnixStream(
     val stream: TokioUnixStream,
-    val extensions: MutableMap<String, Any> = mutableMapOf(),
 ) {
+    val extensions: Extensions = Extensions()
+
     companion object {
         fun new(stream: TokioUnixStream): UnixStream =
             UnixStream(stream = stream)
@@ -39,10 +65,6 @@ class UnixStream(
     }
 
     fun intoTokioUnixStream(): TokioUnixStream = stream
-
-    fun extensions(): Map<String, Any> = extensions
-
-    fun extensionsMut(): MutableMap<String, Any> = extensions
 
     suspend fun pollRead(buffer: ByteArray): Int =
         stream.read(buffer)

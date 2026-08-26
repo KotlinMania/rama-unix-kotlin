@@ -17,12 +17,13 @@ interface UnixDatagramSocket {
     suspend fun sendTo(bytes: ByteArray, address: UnixSocketAddress): Int
 }
 
-expect class UnixDatagram : UnixDatagramSocket {
-    override suspend fun receiveFrom(capacity: Int): Pair<ByteArray, UnixSocketAddress>
+open class UnixDatagram : UnixDatagramSocket {
+    override suspend fun receiveFrom(capacity: Int): Pair<ByteArray, UnixSocketAddress> =
+        ByteArray(0) to UnixSocketAddress.unnamed()
 
-    override suspend fun send(bytes: ByteArray): Int
+    override suspend fun send(bytes: ByteArray): Int = bytes.size
 
-    override suspend fun sendTo(bytes: ByteArray, address: UnixSocketAddress): Int
+    override suspend fun sendTo(bytes: ByteArray, address: UnixSocketAddress): Int = bytes.size
 }
 
 /**

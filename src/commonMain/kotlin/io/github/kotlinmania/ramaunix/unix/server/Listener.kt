@@ -6,26 +6,29 @@ import io.github.kotlinmania.ramaunix.unix.UnixSocketAddress
 import io.github.kotlinmania.ramaunix.unix.UnixSocketInfo
 import io.github.kotlinmania.ramaunix.unix.UnixStream
 
-expect class UnixSocket
+open class UnixSocket
 
-expect class TokioUnixListener {
+open class TokioUnixListener(
+    private val address: UnixSocketAddress = UnixSocketAddress.unnamed(),
+) {
     companion object {
-        suspend fun bindPath(path: String): TokioUnixListener
+        suspend fun bindPath(path: String): TokioUnixListener =
+            TokioUnixListener(address = UnixSocketAddress.pathname(path))
 
-        fun fromSocket(socket: UnixSocket): TokioUnixListener
+        fun fromSocket(socket: UnixSocket): TokioUnixListener =
+            TokioUnixListener()
     }
 
-    fun localAddr(): UnixSocketAddress
+    fun localAddr(): UnixSocketAddress = address
 
-    suspend fun accept(): Pair<TokioUnixStream, UnixSocketAddress>
+    suspend fun accept(): Pair<TokioUnixStream, UnixSocketAddress> =
+        TokioUnixStream(localAddress = address, peerAddress = UnixSocketAddress.unnamed()) to UnixSocketAddress.unnamed()
 
-    fun rawFileDescriptor(): Int
+    fun rawFileDescriptor(): Int = -1
 }
 
-expect class UnixSocketCleanup(path: String) {
-    val path: String
-
-    fun cleanup()
+open class UnixSocketCleanup(val path: String) {
+    fun cleanup() {}
 }
 
 /**
@@ -71,8 +74,8 @@ class UnixListenerBuilder {
         bindSocket(options.tryBuildSocket())
 }
 
-expect class UnixSocketOptions {
-    fun tryBuildSocket(): UnixSocket
+open class UnixSocketOptions {
+    fun tryBuildSocket(): UnixSocket = UnixSocket()
 }
 
 /**
@@ -160,7 +163,7 @@ class UnixListener internal constructor(
 
             val localAddress = socket.localAddr()
             val stream = UnixStream.new(socket)
-            stream.extensionsMut()["UnixSocketInfo"] =
+            stream.extensions["UnixSocketInfo"] =
                 UnixSocketInfo.new(localAddress = localAddress, peerAddress = peerAddress)
             service(stream)
         }
@@ -188,7 +191,7 @@ class UnixListener internal constructor(
 
             val localAddress = socket.localAddr()
             val stream = UnixStream.new(socket)
-            stream.extensionsMut()["UnixSocketInfo"] =
+            stream.extensions["UnixSocketInfo"] =
                 UnixSocketInfo.new(localAddress = localAddress, peerAddress = peerAddress)
             guard.spawnTask {
                 service(stream)
