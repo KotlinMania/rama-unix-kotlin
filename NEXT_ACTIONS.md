@@ -5,13 +5,13 @@ Based on AST analysis, here are the concrete next steps.
 ## Summary
 
 - **Files Present:** 9/9 (100.0%)
-- **Function parity:** 50/56 matched (target 88) — 89.3%
+- **Function parity:** 54/56 matched (target 93) — 96.4%
 - **Class/type parity:** 12/19 matched (target 25) — 63.2%
-- **Combined symbol parity:** 62/75 matched (target 113) — 82.7%
-- **Average inline-code cosine:** 0.43 (function body across 5 matched files)
-- **Average documentation cosine:** 0.80 (doc text across 5 matched files)
+- **Combined symbol parity:** 66/75 matched (target 118) — 88.0%
+- **Average inline-code cosine:** 0.48 (function body across 5 matched files)
+- **Average documentation cosine:** 0.87 (doc text across 5 matched files)
 - **Cheat-zeroed Files:** 3
-- **Critical Issues:** 8 files with <0.60 function similarity
+- **Critical Issues:** 7 files with <0.60 function similarity
 
 ## Priority 1: Fix Incomplete High-Dependency Files
 
@@ -30,26 +30,15 @@ Every matched file is listed below with function and type symbol parity.
 ### 1. unix.stream
 
 - **Target:** `unix.Stream`
-- **Similarity:** 0.37
+- **Similarity:** 0.45
 - **Dependents:** 1
-- **Priority Score:** 1021006.3
-- **Functions:** 8/10 matched (target 25)
-- **Missing functions:** `extensions`, `extensions_mut`
+- **Priority Score:** 1011005.4
+- **Functions:** 9/10 matched (target 26)
+- **Missing functions:** `extensions`
 - **Types:** 0/0 matched (target 3)
 - **Missing types:** _none_
 
-### 2. server.listener
-
-- **Target:** `server.Listener`
-- **Similarity:** 0.51
-- **Dependents:** 0
-- **Priority Score:** 42004.9
-- **Functions:** 13/16 matched (target 24)
-- **Missing functions:** `from`, `try_from`, `drop`
-- **Types:** 3/4 matched (target 7)
-- **Missing types:** `Error`
-
-### 3. unix.frame
+### 2. unix.frame
 
 - **Target:** `unix.Frame`
 - **Similarity:** 0.68
@@ -60,7 +49,7 @@ Every matched file is listed below with function and type symbol parity.
 - **Types:** 1/3 matched (target 5)
 - **Missing types:** `Item`, `Error`
 
-### 4. client.connector
+### 3. client.connector
 
 - **Target:** `client.Connector`
 - **Similarity:** 0.48
@@ -70,6 +59,17 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** _none_
 - **Types:** 5/8 matched (target 7)
 - **Missing types:** `Output`, `Error`, `Connector`
+
+### 4. server.listener
+
+- **Target:** `server.Listener`
+- **Similarity:** 0.63
+- **Dependents:** 0
+- **Priority Score:** 12003.7
+- **Functions:** 16/16 matched (target 28)
+- **Missing functions:** _none_
+- **Types:** 3/4 matched (target 7)
+- **Missing types:** `Error`
 
 ### 5. unix.mod
 

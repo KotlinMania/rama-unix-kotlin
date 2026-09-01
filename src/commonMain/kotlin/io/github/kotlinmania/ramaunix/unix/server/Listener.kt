@@ -29,6 +29,10 @@ open class TokioUnixListener(
 
 open class UnixSocketCleanup(val path: String) {
     fun cleanup() {}
+
+    fun drop() {
+        cleanup()
+    }
 }
 
 /**
@@ -98,6 +102,24 @@ class UnixListener internal constructor(
          * which can be used to configure a [UnixListener].
          */
         fun build(): UnixListenerBuilder = UnixListenerBuilder.new()
+
+        /**
+         * Creates a new [UnixListener] from a [TokioUnixListener].
+         */
+        fun from(value: TokioUnixListener): UnixListener =
+            UnixListener(inner = value, cleanup = null)
+
+        /**
+         * Attempts to create a [UnixListener] from a [UnixSocket].
+         */
+        fun tryFrom(socket: UnixSocket): UnixListener =
+            bindSocket(socket)
+
+        /**
+         * Attempts to create a [UnixListener] from a [TokioUnixListener].
+         */
+        fun tryFrom(listener: TokioUnixListener): UnixListener =
+            from(listener)
 
         /**
          * Creates a new [UnixListener], which will be bound to the specified path.

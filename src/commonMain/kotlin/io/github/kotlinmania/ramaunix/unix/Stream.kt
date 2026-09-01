@@ -64,6 +64,8 @@ class UnixStream(
             new(value)
     }
 
+    fun extensionsMut(): Extensions = extensions
+
     fun intoTokioUnixStream(): TokioUnixStream = stream
 
     suspend fun pollRead(buffer: ByteArray): Int =
