@@ -124,17 +124,50 @@ class UnixDatagramFramed<Item, Codec, Socket>(
     suspend fun pollClose(): Result<Unit> =
         pollFlush()
 
+    /**
+     * Returns a reference to the underlying I/O stream wrapped by Framed.
+     *
+     * Note: Care should be taken to not tamper with the underlying stream of data
+     * coming in as it may corrupt the stream of frames otherwise being worked with.
+     */
     fun getRef(): Socket = socket
 
+    /**
+     * Returns a mutable reference to the underlying I/O stream wrapped by Framed.
+     *
+     * Note: Care should be taken to not tamper with the underlying stream of data
+     * coming in as it may corrupt the stream of frames otherwise being worked with.
+     */
     fun getMut(): Socket = socket
 
+    /**
+     * Returns a reference to the underlying codec wrapped by Framed.
+     *
+     * Note that care should be taken to not tamper with the underlying codec
+     * as it may corrupt the stream of frames otherwise being worked with.
+     */
     fun codec(): Codec = codec
 
+    /**
+     * Returns a mutable reference to the underlying codec wrapped by UnixDatagramFramed.
+     *
+     * Note that care should be taken to not tamper with the underlying codec
+     * as it may corrupt the stream of frames otherwise being worked with.
+     */
     fun codecMut(): Codec = codec
 
+    /**
+     * Returns a reference to the read buffer.
+     */
     fun readBuffer(): ByteArray = rd
 
+    /**
+     * Returns a mutable reference to the read buffer.
+     */
     fun readBufferMut(): ByteArray = rd
 
+    /**
+     * Consumes the Framed, returning its underlying I/O stream.
+     */
     fun intoInner(): Socket = socket
 }
