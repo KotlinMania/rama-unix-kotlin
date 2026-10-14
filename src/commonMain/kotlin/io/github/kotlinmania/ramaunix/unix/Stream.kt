@@ -1,10 +1,21 @@
 // port-lint: source unix/stream.rs
 package io.github.kotlinmania.ramaunix.unix
 
+import io.github.kotlinmania.ramacore.Extensions
+import io.github.kotlinmania.ramacore.ExtensionsMut
+import io.github.kotlinmania.ramacore.ExtensionsRef
+import io.github.kotlinmania.tokio.io.AsyncRead
+import io.github.kotlinmania.tokio.io.AsyncWrite
+import io.github.kotlinmania.tokio.io.Context
+import io.github.kotlinmania.tokio.io.IoSlice
+import io.github.kotlinmania.tokio.io.Poll
+import io.github.kotlinmania.tokio.io.ReadBuf
+
 open class TokioUnixStream(
     private val localAddress: UnixSocketAddress? = null,
     private val peerAddress: UnixSocketAddress = UnixSocketAddress.unnamed(),
-) {
+) : AsyncRead,
+    AsyncWrite {
     companion object {
         suspend fun connect(path: String): TokioUnixStream =
             TokioUnixStream(peerAddress = UnixSocketAddress.pathname(path))
@@ -24,28 +35,22 @@ open class TokioUnixStream(
 
     suspend fun shutdown() {}
 
-    fun isWriteVectored(): Boolean = false
-}
+    override fun pollRead(cx: Context, buf: ReadBuf): Poll<Result<Unit>> =
+        Poll.ready(Result.success(Unit))
 
-class Extensions {
-    private val map: MutableMap<String, Any> = mutableMapOf()
-    operator fun get(key: String): Any? = map[key]
+    override fun pollWrite(cx: Context, buf: UByteArray): Poll<Result<Int>> =
+        Poll.ready(Result.success(buf.size))
 
-    operator fun set(key: String, value: Any) {
-        map[key] = value
-    }
+    override fun pollWriteVectored(cx: Context, bufs: List<IoSlice>): Poll<Result<Int>> =
+        Poll.ready(Result.success(bufs.sumOf { it.size }))
 
-    fun contains(key: String): Boolean = map.containsKey(key)
+    override fun pollFlush(cx: Context): Poll<Result<Unit>> =
+        Poll.ready(Result.success(Unit))
 
-    fun remove(key: String): Any? = map.remove(key)
+    override fun pollShutdown(cx: Context): Poll<Result<Unit>> =
+        Poll.ready(Result.success(Unit))
 
-    fun clear() {
-        map.clear()
-    }
-
-    fun size(): Int = map.size
-
-    fun isEmpty(): Boolean = map.isEmpty()
+    override fun isWriteVectored(): Boolean = false
 }
 
 /**
@@ -53,8 +58,11 @@ class Extensions {
  */
 class UnixStream(
     val stream: TokioUnixStream,
-) {
-    val extensions: Extensions = Extensions()
+) : ExtensionsRef,
+    ExtensionsMut,
+    AsyncRead,
+    AsyncWrite {
+    private val extensionsStore: Extensions = Extensions.new()
 
     companion object {
         fun new(stream: TokioUnixStream): UnixStream =
@@ -64,9 +72,26 @@ class UnixStream(
             new(value)
     }
 
-    fun extensionsMut(): Extensions = extensions
+    override fun extensions(): Extensions = extensionsStore
+
+    override fun extensionsMut(): Extensions = extensionsStore
 
     fun intoTokioUnixStream(): TokioUnixStream = stream
+
+    override fun pollRead(cx: Context, buf: ReadBuf): Poll<Result<Unit>> =
+        stream.pollRead(cx, buf)
+
+    override fun pollWrite(cx: Context, buf: UByteArray): Poll<Result<Int>> =
+        stream.pollWrite(cx, buf)
+
+    override fun pollWriteVectored(cx: Context, bufs: List<IoSlice>): Poll<Result<Int>> =
+        stream.pollWriteVectored(cx, bufs)
+
+    override fun pollFlush(cx: Context): Poll<Result<Unit>> =
+        stream.pollFlush(cx)
+
+    override fun pollShutdown(cx: Context): Poll<Result<Unit>> =
+        stream.pollShutdown(cx)
 
     suspend fun pollRead(buffer: ByteArray): Int =
         stream.read(buffer)
@@ -85,6 +110,6 @@ class UnixStream(
         stream.shutdown()
     }
 
-    fun isWriteVectored(): Boolean =
+    override fun isWriteVectored(): Boolean =
         stream.isWriteVectored()
 }

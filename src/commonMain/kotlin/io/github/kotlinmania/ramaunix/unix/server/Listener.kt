@@ -1,6 +1,8 @@
 // port-lint: source unix/server/listener.rs
 package io.github.kotlinmania.ramaunix.unix.server
 
+import io.github.kotlinmania.ramacore.graceful.ShutdownGuard
+import io.github.kotlinmania.ramacore.rt.Executor
 import io.github.kotlinmania.ramaunix.unix.TokioUnixStream
 import io.github.kotlinmania.ramaunix.unix.UnixSocketAddress
 import io.github.kotlinmania.ramaunix.unix.UnixSocketInfo
@@ -27,7 +29,9 @@ open class TokioUnixListener(
     fun rawFileDescriptor(): Int = -1
 }
 
-open class UnixSocketCleanup(val path: String) {
+open class UnixSocketCleanup(
+    val path: String,
+) {
     fun cleanup() {}
 
     fun drop() {
@@ -185,8 +189,10 @@ class UnixListener internal constructor(
 
             val localAddress = socket.localAddr()
             val stream = UnixStream.new(socket)
-            stream.extensions["UnixSocketInfo"] =
-                UnixSocketInfo.new(localAddress = localAddress, peerAddress = peerAddress)
+            stream.extensionsMut().insert(
+                UnixSocketInfo.new(localAddress = localAddress, peerAddress = peerAddress),
+            )
+            stream.extensionsMut().insert(Executor.new())
             service(stream)
         }
     }
@@ -202,7 +208,7 @@ class UnixListener internal constructor(
         guard: ShutdownGuard,
         service: suspend (UnixStream) -> Unit,
     ) {
-        while (!guard.isCancelled()) {
+        while (!guard.isCancelled) {
             val (socket, peerAddress) =
                 try {
                     inner.accept()
@@ -213,8 +219,10 @@ class UnixListener internal constructor(
 
             val localAddress = socket.localAddr()
             val stream = UnixStream.new(socket)
-            stream.extensions["UnixSocketInfo"] =
-                UnixSocketInfo.new(localAddress = localAddress, peerAddress = peerAddress)
+            stream.extensionsMut().insert(
+                UnixSocketInfo.new(localAddress = localAddress, peerAddress = peerAddress),
+            )
+            stream.extensionsMut().insert(Executor.graceful(guard))
             guard.spawnTask {
                 service(stream)
             }
@@ -226,12 +234,13 @@ class UnixListener internal constructor(
     }
 }
 
-interface ShutdownGuard {
-    fun isCancelled(): Boolean
-
-    suspend fun spawnTask(block: suspend () -> Unit)
-}
-
 suspend fun handleAcceptErr(error: Throwable) {
-    throw error
+    val message = error.message?.lowercase().orEmpty()
+    val isConnErr =
+        message.contains("connection refused") ||
+            message.contains("connection reset") ||
+            message.contains("connection aborted")
+    if (isConnErr) {
+        return
+    }
 }

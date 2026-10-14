@@ -60,7 +60,7 @@ class UnixConnector<ConnectorFactory : UnixStreamConnectorFactory<UnixStreamConn
                     peerAddress = conn.stream.peerAddr(),
                 ),
             )
-        conn.extensions["ClientUnixSocketInfo"] = info
+        conn.extensionsMut().insert(info)
         return EstablishedClientConnection(input = input, conn = conn)
     }
 }
