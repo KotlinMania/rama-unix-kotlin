@@ -77,8 +77,8 @@ class UnixSocketInfoTest {
             val unixStream = UnixStream.new(stream)
 
             assertSame(stream, unixStream.intoTokioUnixStream())
-            assertNotNull(unixStream.extensions)
-            assertNotNull(unixStream.extensionsMut())
+            assertNotNull(unixStream.extensions())
+            assertSame(unixStream.extensions(), unixStream.extensionsMut())
             assertFalse(unixStream.isWriteVectored())
 
             val testBytes = byteArrayOf(1, 2, 3)
@@ -88,14 +88,9 @@ class UnixSocketInfoTest {
             unixStream.pollFlush()
             unixStream.pollShutdown()
 
-            unixStream.extensions["key"] = "value"
-            assertTrue(unixStream.extensions.contains("key"))
-            assertEquals("value", unixStream.extensions["key"])
-            assertEquals(1, unixStream.extensions.size())
-            assertFalse(unixStream.extensions.isEmpty())
-            unixStream.extensions.remove("key")
-            assertTrue(unixStream.extensions.isEmpty())
-            unixStream.extensions.clear()
+            unixStream.extensionsMut().insert("value")
+            assertTrue(unixStream.extensions().contains<String>())
+            assertEquals("value", unixStream.extensions().get<String>())
         }
     }
 
@@ -143,7 +138,9 @@ class UnixSocketInfoTest {
                 override fun encode(item: String): ByteArray = item.encodeToByteArray()
             }
 
-            class MockCodec : Decoder<String> by MockDecoder(), Encoder<String> by MockEncoder()
+            class MockCodec :
+                Decoder<String> by MockDecoder(),
+                Encoder<String> by MockEncoder()
 
             val socket = UnixDatagram()
             val codec = MockCodec()
@@ -180,10 +177,11 @@ class UnixSocketInfoTest {
             assertEquals("request", conn.input)
             assertNotNull(conn.conn)
 
-            val customConnector = object : UnixStreamConnector {
-                override suspend fun connect(path: String): UnixStream =
-                    UnixStream.from(TokioUnixStream.connect(path))
-            }
+            val customConnector =
+                object : UnixStreamConnector {
+                    override suspend fun connect(path: String): UnixStream =
+                        UnixStream.from(TokioUnixStream.connect(path))
+                }
 
             val withConn = connector.withConnector(customConnector)
             val conn2 = withConn.serve(42)
