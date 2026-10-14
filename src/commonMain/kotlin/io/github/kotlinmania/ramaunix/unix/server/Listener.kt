@@ -1,12 +1,18 @@
 // port-lint: source unix/server/listener.rs
+@file:OptIn(kotlin.experimental.ExperimentalObjCRefinement::class)
+
 package io.github.kotlinmania.ramaunix.unix.server
 
 import io.github.kotlinmania.ramacore.graceful.ShutdownGuard
 import io.github.kotlinmania.ramacore.rt.Executor
+import io.github.kotlinmania.ramacore.service.Service
+import io.github.kotlinmania.ramanet.conn.isConnectionError
 import io.github.kotlinmania.ramaunix.unix.TokioUnixStream
 import io.github.kotlinmania.ramaunix.unix.UnixSocketAddress
 import io.github.kotlinmania.ramaunix.unix.UnixSocketInfo
 import io.github.kotlinmania.ramaunix.unix.UnixStream
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 
 open class UnixSocket
 
@@ -198,6 +204,16 @@ class UnixListener internal constructor(
     }
 
     /**
+     * Serve connections from this listener with the given [Service].
+     */
+    @HiddenFromObjC
+    suspend fun <Output : Any, Error : Any> serve(service: Service<UnixStream, Output, Error>): Nothing {
+        serve { stream ->
+            service.serve(stream)
+        }
+    }
+
+    /**
      * Serve gracefully connections from this listener with the given service.
      *
      * This method does the same as [serve] but it
@@ -229,18 +245,26 @@ class UnixListener internal constructor(
         }
     }
 
+    /**
+     * Serve gracefully connections from this listener with the given [Service].
+     */
+    @HiddenFromObjC
+    suspend fun <Output : Any, Error : Any> serveGraceful(
+        guard: ShutdownGuard,
+        service: Service<UnixStream, Output, Error>,
+    ) {
+        serveGraceful(guard) { stream ->
+            service.serve(stream)
+        }
+    }
+
     fun close() {
         cleanup?.cleanup()
     }
 }
 
 suspend fun handleAcceptErr(error: Throwable) {
-    val message = error.message?.lowercase().orEmpty()
-    val isConnErr =
-        message.contains("connection refused") ||
-            message.contains("connection reset") ||
-            message.contains("connection aborted")
-    if (isConnErr) {
+    if (isConnectionError(error)) {
         return
     }
 }
