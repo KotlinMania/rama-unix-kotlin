@@ -1,10 +1,4 @@
-// port-lint: source unix/mod.rs
 package io.github.kotlinmania.ramaunix.unix
-
-/**
- * This package exposes Unix socket address, stream, datagram framing,
- * client connector, and server listener APIs.
- */
 
 /**
  * Information about the socket on the egress end.

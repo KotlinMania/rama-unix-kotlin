@@ -1,6 +1,4 @@
 // port-lint: source unix/client/connector.rs
-@file:OptIn(kotlin.experimental.ExperimentalObjCRefinement::class)
-
 package io.github.kotlinmania.ramaunix.unix.client
 
 import io.github.kotlinmania.ramanet.client.EstablishedClientConnection
@@ -8,8 +6,6 @@ import io.github.kotlinmania.ramaunix.unix.ClientUnixSocketInfo
 import io.github.kotlinmania.ramaunix.unix.TokioUnixStream
 import io.github.kotlinmania.ramaunix.unix.UnixSocketInfo
 import io.github.kotlinmania.ramaunix.unix.UnixStream
-import kotlin.experimental.ExperimentalObjCRefinement
-import kotlin.native.HiddenFromObjC
 
 /**
  * A connector which can be used to establish a Unix connection to a server.
@@ -55,7 +51,6 @@ class UnixConnector<ConnectorFactory : UnixStreamConnectorFactory<UnixStreamConn
             target = target,
         )
 
-    @HiddenFromObjC
     suspend fun <Input> serve(input: Input): EstablishedClientConnection<UnixStream, Input> {
         val connector = connectorFactory.makeConnector()
         val conn = connector.connect(target.path)
