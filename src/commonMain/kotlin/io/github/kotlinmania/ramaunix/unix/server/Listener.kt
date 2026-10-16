@@ -1,6 +1,4 @@
 // port-lint: source unix/server/listener.rs
-@file:OptIn(kotlin.experimental.ExperimentalObjCRefinement::class)
-
 package io.github.kotlinmania.ramaunix.unix.server
 
 import io.github.kotlinmania.ramacore.graceful.ShutdownGuard
@@ -11,8 +9,6 @@ import io.github.kotlinmania.ramaunix.unix.TokioUnixStream
 import io.github.kotlinmania.ramaunix.unix.UnixSocketAddress
 import io.github.kotlinmania.ramaunix.unix.UnixSocketInfo
 import io.github.kotlinmania.ramaunix.unix.UnixStream
-import kotlin.experimental.ExperimentalObjCRefinement
-import kotlin.native.HiddenFromObjC
 
 open class UnixSocket
 
@@ -206,7 +202,6 @@ class UnixListener internal constructor(
     /**
      * Serve connections from this listener with the given [Service].
      */
-    @HiddenFromObjC
     suspend fun <Output : Any, Error : Any> serve(service: Service<UnixStream, Output, Error>): Nothing {
         serve { stream ->
             service.serve(stream)
@@ -248,7 +243,6 @@ class UnixListener internal constructor(
     /**
      * Serve gracefully connections from this listener with the given [Service].
      */
-    @HiddenFromObjC
     suspend fun <Output : Any, Error : Any> serveGraceful(
         guard: ShutdownGuard,
         service: Service<UnixStream, Output, Error>,
