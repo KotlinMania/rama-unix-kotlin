@@ -5,13 +5,15 @@ Based on AST analysis, here are the concrete next steps.
 ## Summary
 
 - **Files Present:** 9/9 (100.0%)
-- **Function parity:** 54/56 matched (target 93) — 96.4%
-- **Class/type parity:** 12/19 matched (target 25) — 63.2%
-- **Combined symbol parity:** 66/75 matched (target 118) — 88.0%
-- **Average inline-code cosine:** 0.48 (function body across 5 matched files)
-- **Average documentation cosine:** 0.87 (doc text across 5 matched files)
+- **Function parity:** 59/67 matched (target 99) — 88.1%
+- **Class/type parity:** 12/19 matched (target 22) — 63.2%
+- **Combined symbol parity:** 71/86 matched (target 121) — 82.6%
+- **Average inline-code cosine:** 0.29 (function body across 6 matched files)
+- **Average documentation cosine:** 0.88 (doc text across 6 matched files)
 - **Cheat-zeroed Files:** 3
-- **Critical Issues:** 7 files with <0.60 function similarity
+- **Critical Issues:** 8 files with <0.60 function similarity
+- **Needs Review:** 0 files with 0.60-0.84 function similarity
+- **Excellent:** 1 files with >=0.85 function similarity
 
 ## Priority 1: Fix Incomplete High-Dependency Files
 
@@ -30,48 +32,59 @@ Every matched file is listed below with function and type symbol parity.
 ### 1. unix.stream
 
 - **Target:** `unix.Stream`
-- **Similarity:** 0.45
+- **Similarity:** 0.26
 - **Dependents:** 1
-- **Priority Score:** 1011005.4
-- **Functions:** 9/10 matched (target 26)
-- **Missing functions:** `extensions`
-- **Types:** 0/0 matched (target 3)
+- **Priority Score:** 1011107.4
+- **Functions:** 10/11 matched (target 30)
+- **Missing functions:** `from`
+- **Types:** 0/0 matched (target 2)
 - **Missing types:** _none_
 
-### 2. unix.frame
+### 2. client.connector
+
+- **Target:** `client.Connector`
+- **Similarity:** 0.16
+- **Dependents:** 0
+- **Priority Score:** 61708.4
+- **Functions:** 6/9 matched (target 6)
+- **Missing functions:** `connect`, `make_connector`, `make_connector`
+- **Types:** 5/8 matched (target 6)
+- **Missing types:** `Output`, `Error`, `Connector`
+
+### 3. unix.frame
 
 - **Target:** `unix.Frame`
-- **Similarity:** 0.68
+- **Similarity:** 0.09
 - **Dependents:** 0
-- **Priority Score:** 31603.2
+- **Priority Score:** 31609.1
 - **Functions:** 12/13 matched (target 15)
 - **Missing functions:** `new`
 - **Types:** 1/3 matched (target 5)
 - **Missing types:** `Item`, `Error`
 
-### 3. client.connector
+### 4. unix.address
 
-- **Target:** `client.Connector`
-- **Similarity:** 0.48
+- **Target:** `unix.Address`
+- **Similarity:** 0.01
 - **Dependents:** 0
-- **Priority Score:** 31405.2
-- **Functions:** 6/6 matched
-- **Missing functions:** _none_
-- **Types:** 5/8 matched (target 7)
-- **Missing types:** `Output`, `Error`, `Connector`
+- **Priority Score:** 30809.9
+- **Functions:** 4/7 matched (target 10)
+- **Missing functions:** `from`, `from`, `from`
+- **Types:** 1/1 matched
+- **Missing types:** _none_
 
-### 4. server.listener
+### 5. server.listener
 
 - **Target:** `server.Listener`
-- **Similarity:** 0.63
+- **Similarity:** 0.24
 - **Dependents:** 0
-- **Priority Score:** 12003.7
-- **Functions:** 16/16 matched (target 28)
+- **Priority Score:** 12407.6
+- **Functions:** 20/20 matched (target 30)
 - **Missing functions:** _none_
-- **Types:** 3/4 matched (target 7)
+- **Types:** 3/4 matched (target 6)
 - **Missing types:** `Error`
 
-### 5. unix.mod
+### 6. unix.mod
 
 - **Target:** `unix.Mod [STUB]`
 - **Similarity:** 0.00
@@ -81,17 +94,6 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** _none_
 - **Types:** 2/3 matched (target 2)
 - **Missing types:** `Target`
-
-### 6. unix.address
-
-- **Target:** `unix.Address`
-- **Similarity:** 0.13
-- **Dependents:** 0
-- **Priority Score:** 508.7
-- **Functions:** 4/4 matched (target 10)
-- **Missing functions:** _none_
-- **Types:** 1/1 matched
-- **Missing types:** _none_
 
 ### 7. client.mod
 
@@ -117,7 +119,7 @@ Every matched file is listed below with function and type symbol parity.
 
 ### 9. lib
 
-- **Target:** `ramaunix.Lib [STUB]`
+- **Target:** `ramaunix.Lib`
 - **Similarity:** 1.00
 - **Dependents:** 0
 - **Priority Score:** 0.0
